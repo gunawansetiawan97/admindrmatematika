@@ -71,7 +71,8 @@
                 </div>
                 <div class="flex items-end pb-2">
                     <label class="flex items-center">
-                        <input type="checkbox" name="is_free" value="1" {{ old('is_free', true) ? 'checked' : '' }} class="mr-2">
+                        <input type="hidden" name="is_free" value="0">
+                        <input type="checkbox" name="is_free" value="1" {{ old('is_free', '1') == '1' ? 'checked' : '' }} class="mr-2">
                         <span class="text-gray-700">Gratis</span>
                     </label>
                 </div>
@@ -79,7 +80,8 @@
 
             <div class="mb-6">
                 <label class="flex items-center">
-                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }} class="mr-2">
+                    <input type="hidden" name="is_active" value="0">
+                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', '1') == '1' ? 'checked' : '' }} class="mr-2">
                     <span class="text-gray-700">Aktifkan paket soal</span>
                 </label>
             </div>

@@ -62,7 +62,8 @@
 
             <div class="mb-4">
                 <label class="flex items-center">
-                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }} class="mr-2">
+                    <input type="hidden" name="is_active" value="0">
+                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', '1') == '1' ? 'checked' : '' }} class="mr-2">
                     <span class="text-gray-700">Aktifkan paket soal</span>
                 </label>
             </div>

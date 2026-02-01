@@ -74,7 +74,8 @@
                 </div>
                 <div class="flex items-end pb-2">
                     <label class="flex items-center">
-                        <input type="checkbox" name="is_free" value="1" {{ old('is_free', $package->is_free) ? 'checked' : '' }} class="mr-2">
+                        <input type="hidden" name="is_free" value="0">
+                        <input type="checkbox" name="is_free" value="1" {{ old('is_free', $package->is_free ? '1' : '0') == '1' ? 'checked' : '' }} class="mr-2">
                         <span class="text-gray-700">Gratis</span>
                     </label>
                 </div>
@@ -82,25 +83,26 @@
 
             <div class="mb-6">
                 <label class="flex items-center">
-                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', $package->is_active) ? 'checked' : '' }} class="mr-2">
+                    <input type="hidden" name="is_active" value="0">
+                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', $package->is_active ? '1' : '0') == '1' ? 'checked' : '' }} class="mr-2">
                     <span class="text-gray-700">Aktifkan paket soal</span>
                 </label>
             </div>
 
-            <div class="flex justify-between">
-                <form action="{{ route('admin.packages.destroy', $package) }}" method="POST"
-                    onsubmit="return confirm('Yakin ingin menghapus paket soal ini?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Hapus</button>
-                </form>
-
-                <div class="flex space-x-4">
-                    <a href="{{ route('admin.packages.show', $package) }}" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Batal</a>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Simpan</button>
-                </div>
+            <div class="flex justify-end space-x-4">
+                <a href="{{ route('admin.packages.show', $package) }}" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Batal</a>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Simpan</button>
             </div>
         </form>
+
+        <div class="mt-6 pt-6 border-t">
+            <form action="{{ route('admin.packages.destroy', $package) }}" method="POST"
+                onsubmit="return confirm('Yakin ingin menghapus paket soal ini?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Hapus Paket</button>
+            </form>
+        </div>
     </div>
 </div>
 @endsection
