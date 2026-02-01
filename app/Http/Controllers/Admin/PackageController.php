@@ -95,9 +95,9 @@ class PackageController extends Controller
             'duration_minutes' => $validated['duration_minutes'],
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
-            'is_active' => $request->boolean('is_active', true),
+            'is_active' => $request->boolean('is_active'),
             'price' => $validated['price'] ?? 0,
-            'is_free' => $request->boolean('is_free', true),
+            'is_free' => $request->boolean('is_free'),
         ]);
 
         return redirect()->route('admin.packages.show', $package)
