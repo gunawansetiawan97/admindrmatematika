@@ -84,6 +84,21 @@
                             <div>
                                 <p class="font-medium">{{ $member->user->name }}</p>
                                 <p class="text-sm text-gray-500">{{ $member->user->email }}</p>
+                                @if($member->userSubscription)
+                                    <div class="flex items-center space-x-4 mt-1">
+                                        <span class="text-xs text-gray-500">
+                                            Mulai: <span class="font-medium">{{ $member->userSubscription->starts_at->format('d M Y') }}</span>
+                                        </span>
+                                        <span class="text-xs {{ $member->userSubscription->expires_at < now() ? 'text-red-500' : 'text-gray-500' }}">
+                                            Expired: <span class="font-medium">{{ $member->userSubscription->expires_at->format('d M Y') }}</span>
+                                        </span>
+                                        @if($member->userSubscription->expires_at < now())
+                                            <span class="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-600">Expired</span>
+                                        @elseif($member->userSubscription->status === 'active')
+                                            <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-600">Aktif</span>
+                                        @endif
+                                    </div>
+                                @endif
                                 <p class="text-xs text-gray-400 mt-1">
                                     Bergabung: {{ $member->joined_at->format('d M Y H:i') }}
                                     @if($member->addedBy)

@@ -163,10 +163,19 @@ class ClassroomService
 
     public function getClassroomMembers(Classroom $classroom): Collection
     {
-        return $classroom->members()
+        $members = $classroom->members()
             ->with(['user', 'addedBy'])
             ->orderBy('joined_at', 'desc')
             ->get();
+
+        // Attach subscription info for each member
+        return $members->map(function ($member) use ($classroom) {
+            $member->userSubscription = UserSubscription::where('user_id', $member->user_id)
+                ->where('subscription_id', $classroom->subscription_id)
+                ->orderBy('expires_at', 'desc')
+                ->first();
+            return $member;
+        });
     }
 
     public function createActivity(Classroom $classroom, Admin $admin, array $data): ClassroomActivity
