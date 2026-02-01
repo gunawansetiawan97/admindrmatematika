@@ -134,9 +134,10 @@ class ClassroomService
 
     public function getAvailableStudents(Classroom $classroom): Collection
     {
-        // Get active subscribers of the classroom's subscription
-        // who are not yet members of this classroom
-        $existingMemberIds = $classroom->members()->pluck('user_id');
+        // Get user IDs yang sudah terdaftar di kelas manapun dalam subscription yang sama
+        $existingMemberIds = ClassroomMember::whereHas('classroom', function ($query) use ($classroom) {
+            $query->where('subscription_id', $classroom->subscription_id);
+        })->pluck('user_id');
 
         return User::whereHas('userSubscriptions', function ($query) use ($classroom) {
             $query->where('subscription_id', $classroom->subscription_id)
@@ -146,6 +147,18 @@ class ClassroomService
             ->whereNotIn('id', $existingMemberIds)
             ->orderBy('name')
             ->get();
+    }
+
+    /**
+     * Check if user is already a member of any classroom in the same subscription
+     */
+    public function userAlreadyInSubscriptionClassroom(User $user, Classroom $classroom): bool
+    {
+        return ClassroomMember::whereHas('classroom', function ($query) use ($classroom) {
+            $query->where('subscription_id', $classroom->subscription_id);
+        })
+            ->where('user_id', $user->id)
+            ->exists();
     }
 
     public function getClassroomMembers(Classroom $classroom): Collection

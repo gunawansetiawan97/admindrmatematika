@@ -132,6 +132,11 @@ class ClassroomController extends Controller
             return back()->withErrors(['user_id' => 'Murid sudah menjadi anggota kelas ini.']);
         }
 
+        // Check if user is already in another classroom with the same subscription
+        if ($this->classroomService->userAlreadyInSubscriptionClassroom($user, $classroom)) {
+            return back()->withErrors(['user_id' => 'Murid sudah terdaftar di kelas lain dalam langganan ini.']);
+        }
+
         $admin = Auth::guard('admin')->user();
         $this->classroomService->addMember($classroom, $user, $admin);
 
