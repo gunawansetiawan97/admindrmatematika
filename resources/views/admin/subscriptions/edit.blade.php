@@ -48,6 +48,38 @@
                 </div>
             </div>
 
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Hari Pertemuan</label>
+                <div class="flex flex-wrap gap-3">
+                    @php
+                        $dayOptions = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+                        $oldDays = old('days', $subscription->days ?? []);
+                    @endphp
+                    @foreach($dayOptions as $day)
+                        <label class="flex items-center">
+                            <input type="checkbox" name="days[]" value="{{ $day }}"
+                                {{ in_array($day, $oldDays) ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">{{ $day }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('days')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Pertemuan</label>
+                <input type="number" name="meetings_count" value="{{ old('meetings_count', $subscription->meetings_count) }}" min="1"
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 @error('meetings_count') border-red-500 @enderror"
+                    placeholder="Contoh: 12">
+                @error('meetings_count')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                <p class="mt-1 text-xs text-gray-500">Murid hanya bisa mengakses materi sampai pertemuan ke-X yang ditentukan.</p>
+            </div>
+
             <div class="mb-4" x-data="{ features: {{ json_encode($subscription->features ?: ['']) }} }">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Fitur</label>
                 <template x-for="(feature, index) in features" :key="index">

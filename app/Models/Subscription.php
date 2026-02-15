@@ -14,6 +14,8 @@ class Subscription extends Model
         'description',
         'price',
         'duration_days',
+        'days',
+        'meetings_count',
         'features',
         'is_active',
     ];
@@ -21,6 +23,8 @@ class Subscription extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'duration_days' => 'integer',
+        'days' => 'array',
+        'meetings_count' => 'integer',
         'features' => 'array',
         'is_active' => 'boolean',
     ];

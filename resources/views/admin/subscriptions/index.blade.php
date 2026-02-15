@@ -23,6 +23,8 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Paket</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Durasi</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hari</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pertemuan</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pelanggan</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
@@ -39,6 +41,24 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap font-medium">{{ $subscription->formatted_price }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{{ $subscription->duration_days }} hari</td>
+                    <td class="px-6 py-4">
+                        @if($subscription->days && count($subscription->days) > 0)
+                            <div class="flex flex-wrap gap-1">
+                                @foreach($subscription->days as $day)
+                                    <span class="px-1.5 py-0.5 text-xs rounded bg-blue-100 text-blue-700">{{ $day }}</span>
+                                @endforeach
+                            </div>
+                        @else
+                            <span class="text-gray-400 text-sm">-</span>
+                        @endif
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        @if($subscription->meetings_count)
+                            {{ $subscription->meetings_count }}x
+                        @else
+                            <span class="text-gray-400 text-sm">-</span>
+                        @endif
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap">{{ $subscription->user_subscriptions_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         @if($subscription->is_active)
@@ -58,7 +78,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">Belum ada paket kelas</td>
+                    <td colspan="8" class="px-6 py-4 text-center text-gray-500">Belum ada paket kelas</td>
                 </tr>
             @endforelse
         </tbody>

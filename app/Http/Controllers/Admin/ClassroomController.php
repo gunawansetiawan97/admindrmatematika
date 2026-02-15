@@ -157,6 +157,7 @@ class ClassroomController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
             'is_pinned' => ['boolean'],
+            'meeting_number' => ['nullable', 'integer', 'min:1'],
         ], [
             'type.required' => 'Pilih jenis aktivitas.',
             'title.required' => 'Judul aktivitas wajib diisi.',
@@ -169,6 +170,7 @@ class ClassroomController extends Controller
             'title' => $validated['title'],
             'content' => $validated['content'],
             'is_pinned' => $request->boolean('is_pinned'),
+            'meeting_number' => $validated['meeting_number'] ?? null,
         ]);
 
         return back()->with('success', 'Aktivitas berhasil ditambahkan.');

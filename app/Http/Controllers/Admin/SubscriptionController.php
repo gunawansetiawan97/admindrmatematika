@@ -28,6 +28,9 @@ class SubscriptionController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'duration_days' => 'required|integer|min:1',
+            'days' => 'nullable|array',
+            'days.*' => 'string|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
+            'meetings_count' => 'nullable|integer|min:1',
             'features' => 'nullable|array',
             'features.*' => 'string',
             'is_active' => 'boolean',
@@ -35,6 +38,7 @@ class SubscriptionController extends Controller
 
         $validated['is_active'] = $request->has('is_active');
         $validated['features'] = $request->features ?? [];
+        $validated['days'] = $request->days ?? [];
 
         Subscription::create($validated);
 
@@ -54,6 +58,9 @@ class SubscriptionController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'duration_days' => 'required|integer|min:1',
+            'days' => 'nullable|array',
+            'days.*' => 'string|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
+            'meetings_count' => 'nullable|integer|min:1',
             'features' => 'nullable|array',
             'features.*' => 'string',
             'is_active' => 'boolean',
@@ -61,6 +68,7 @@ class SubscriptionController extends Controller
 
         $validated['is_active'] = $request->has('is_active');
         $validated['features'] = $request->features ?? [];
+        $validated['days'] = $request->days ?? [];
 
         $subscription->update($validated);
 

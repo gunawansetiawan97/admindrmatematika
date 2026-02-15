@@ -131,7 +131,7 @@
                 <h3 class="font-medium mb-4">Tambah Aktivitas Baru</h3>
                 <form action="{{ route('admin.classrooms.activities.store', $classroom) }}" method="POST">
                     @csrf
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-3 gap-4 mb-4">
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-2">Jenis</label>
                             <select name="type" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
@@ -144,6 +144,16 @@
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-2">Judul</label>
                             <input type="text" name="title" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Pertemuan Ke-</label>
+                            <input type="number" name="meeting_number" min="1"
+                                @if($classroom->subscription->meetings_count) max="{{ $classroom->subscription->meetings_count }}" @endif
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Contoh: 1">
+                            @if($classroom->subscription->meetings_count)
+                                <p class="text-xs text-gray-500 mt-1">Maks: {{ $classroom->subscription->meetings_count }} pertemuan</p>
+                            @endif
                         </div>
                     </div>
                     <div class="mb-4">
@@ -179,6 +189,11 @@
                                         <span class="px-2 py-1 text-xs rounded {{ $activity->type === 'announcement' ? 'bg-red-100 text-red-800' : ($activity->type === 'youtube' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-800') }}">
                                             {{ $activity->type_label }}
                                         </span>
+                                        @if($activity->meeting_number)
+                                            <span class="px-2 py-1 text-xs rounded bg-purple-100 text-purple-700">
+                                                Pertemuan {{ $activity->meeting_number }}
+                                            </span>
+                                        @endif
                                         <h4 class="font-medium">{{ $activity->title }}</h4>
                                     </div>
                                     <p class="text-sm text-gray-600 mb-2">
