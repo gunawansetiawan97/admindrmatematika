@@ -30,7 +30,7 @@
                                 <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{{ $pendingPayments }}</span>
                             @endif
                         </a>
-                        <a href="{{ route('admin.subscriptions.index') }}" class="hover:bg-gray-700 px-3 py-2 rounded">Langganan</a>
+                        <a href="{{ route('admin.subscriptions.index') }}" class="hover:bg-gray-700 px-3 py-2 rounded">Kelas</a>
                         <a href="{{ route('admin.classrooms.index') }}" class="hover:bg-gray-700 px-3 py-2 rounded">Kelas</a>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                         <span class="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{{ $pendingPayments }}</span>
                     @endif
                 </a>
-                <a href="{{ route('admin.subscriptions.index') }}" class="block hover:bg-gray-600 px-3 py-2 rounded">Langganan</a>
+                <a href="{{ route('admin.subscriptions.index') }}" class="block hover:bg-gray-600 px-3 py-2 rounded">Kelas</a>
                 <a href="{{ route('admin.classrooms.index') }}" class="block hover:bg-gray-600 px-3 py-2 rounded">Kelas</a>
                 <div class="border-t border-gray-500 my-2"></div>
                 <div class="px-3 py-2 text-gray-300 flex items-center">

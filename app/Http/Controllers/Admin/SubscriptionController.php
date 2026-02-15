@@ -39,7 +39,7 @@ class SubscriptionController extends Controller
         Subscription::create($validated);
 
         return redirect()->route('admin.subscriptions.index')
-            ->with('success', 'Paket langganan berhasil dibuat.');
+            ->with('success', 'Paket kelas berhasil dibuat.');
     }
 
     public function edit(Subscription $subscription)
@@ -65,20 +65,20 @@ class SubscriptionController extends Controller
         $subscription->update($validated);
 
         return redirect()->route('admin.subscriptions.index')
-            ->with('success', 'Paket langganan berhasil diperbarui.');
+            ->with('success', 'Paket kelas berhasil diperbarui.');
     }
 
     public function destroy(Subscription $subscription)
     {
         // Check if there are active subscriptions
         if ($subscription->userSubscriptions()->where('status', 'active')->exists()) {
-            return back()->with('error', 'Tidak dapat menghapus paket langganan yang masih memiliki pelanggan aktif.');
+            return back()->with('error', 'Tidak dapat menghapus paket kelas yang masih memiliki pelanggan aktif.');
         }
 
         $subscription->delete();
 
         return redirect()->route('admin.subscriptions.index')
-            ->with('success', 'Paket langganan berhasil dihapus.');
+            ->with('success', 'Paket kelas berhasil dihapus.');
     }
 
     public function subscribers()

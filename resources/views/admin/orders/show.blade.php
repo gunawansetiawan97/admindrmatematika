@@ -39,7 +39,7 @@
                             @if($item->orderable_type === 'App\\Models\\QuestionPackage')
                                 <span class="text-xs text-blue-600">Paket Soal</span>
                             @else
-                                <span class="text-xs text-purple-600">Langganan</span>
+                                <span class="text-xs text-purple-600">Kelas</span>
                             @endif
                         </div>
                         <p class="font-medium">Rp {{ number_format($item->price, 0, ',', '.') }}</p>

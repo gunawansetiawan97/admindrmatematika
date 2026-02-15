@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Paket Langganan')
+@section('title', 'Edit Paket Kelas')
 
 @section('content')
 <div class="max-w-2xl mx-auto">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Edit Paket Langganan</h1>
+        <h1 class="text-2xl font-bold">Edit Paket Kelas</h1>
         <a href="{{ route('admin.subscriptions.index') }}" class="text-blue-600 hover:text-blue-800">&larr; Kembali</a>
     </div>
 

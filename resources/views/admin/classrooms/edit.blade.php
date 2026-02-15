@@ -12,11 +12,11 @@
             @method('PUT')
 
             <div class="mb-4">
-                <label for="subscription_id" class="block text-gray-700 font-medium mb-2">Langganan</label>
+                <label for="subscription_id" class="block text-gray-700 font-medium mb-2">Kelas</label>
                 <select name="subscription_id" id="subscription_id"
                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('subscription_id') border-red-500 @enderror"
                     required>
-                    <option value="">Pilih Langganan</option>
+                    <option value="">Pilih Kelas</option>
                     @foreach($subscriptions as $subscription)
                         <option value="{{ $subscription->id }}" {{ old('subscription_id', $classroom->subscription_id) == $subscription->id ? 'selected' : '' }}>
                             {{ $subscription->name }} ({{ $subscription->formatted_price }})

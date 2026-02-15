@@ -49,7 +49,7 @@ class ClassroomController extends Controller
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],
         ], [
-            'subscription_id.required' => 'Pilih langganan terlebih dahulu.',
+            'subscription_id.required' => 'Pilih kelas terlebih dahulu.',
             'name.required' => 'Nama kelas wajib diisi.',
         ]);
 
@@ -124,7 +124,7 @@ class ClassroomController extends Controller
             ->exists();
 
         if (!$hasSubscription) {
-            return back()->withErrors(['user_id' => 'Murid tidak memiliki langganan aktif untuk subscription ini.']);
+            return back()->withErrors(['user_id' => 'Murid tidak memiliki kelas aktif untuk subscription ini.']);
         }
 
         // Check if already a member
@@ -134,7 +134,7 @@ class ClassroomController extends Controller
 
         // Check if user is already in another classroom with the same subscription
         if ($this->classroomService->userAlreadyInSubscriptionClassroom($user, $classroom)) {
-            return back()->withErrors(['user_id' => 'Murid sudah terdaftar di kelas lain dalam langganan ini.']);
+            return back()->withErrors(['user_id' => 'Murid sudah terdaftar di kelas lain dalam kelas ini.']);
         }
 
         $admin = Auth::guard('admin')->user();

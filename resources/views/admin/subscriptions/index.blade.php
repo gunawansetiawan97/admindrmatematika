@@ -1,10 +1,10 @@
 @extends('layouts.admin')
 
-@section('title', 'Kelola Langganan')
+@section('title', 'Kelola Kelas')
 
 @section('content')
 <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold">Kelola Paket Langganan</h1>
+    <h1 class="text-2xl font-bold">Kelola Paket Kelas</h1>
     <div class="space-x-2">
         <a href="{{ route('admin.subscriptions.subscribers') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
             Lihat Pelanggan
@@ -58,7 +58,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">Belum ada paket langganan</td>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">Belum ada paket kelas</td>
                 </tr>
             @endforelse
         </tbody>
