@@ -187,7 +187,7 @@ class ClassroomService
             'title' => $data['title'],
             'content' => $data['content'],
             'is_pinned' => $data['is_pinned'] ?? false,
-            'meeting_number' => $data['meeting_number'] ?? null,
+            'meeting_date' => $data['meeting_date'] ?? null,
         ]);
     }
 

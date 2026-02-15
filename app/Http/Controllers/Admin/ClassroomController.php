@@ -157,12 +157,25 @@ class ClassroomController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
             'is_pinned' => ['boolean'],
-            'meeting_number' => ['nullable', 'integer', 'min:1'],
+            'meeting_date' => ['nullable', 'date'],
         ], [
             'type.required' => 'Pilih jenis aktivitas.',
             'title.required' => 'Judul aktivitas wajib diisi.',
             'content.required' => 'Konten aktivitas wajib diisi.',
         ]);
+
+        // Validate that the meeting date falls on an allowed day
+        if (!empty($validated['meeting_date']) && $classroom->subscription->days && count($classroom->subscription->days) > 0) {
+            $dayMap = [
+                'Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa',
+                'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu',
+            ];
+            $selectedDay = $dayMap[date('l', strtotime($validated['meeting_date']))];
+            if (!in_array($selectedDay, $classroom->subscription->days)) {
+                return back()->withErrors(['meeting_date' => 'Tanggal harus jatuh pada hari: ' . implode(', ', $classroom->subscription->days) . '. Anda memilih hari ' . $selectedDay . '.'])
+                    ->withInput();
+            }
+        }
 
         $admin = Auth::guard('admin')->user();
         $this->classroomService->createActivity($classroom, $admin, [
@@ -170,7 +183,7 @@ class ClassroomController extends Controller
             'title' => $validated['title'],
             'content' => $validated['content'],
             'is_pinned' => $request->boolean('is_pinned'),
-            'meeting_number' => $validated['meeting_number'] ?? null,
+            'meeting_date' => $validated['meeting_date'] ?? null,
         ]);
 
         return back()->with('success', 'Aktivitas berhasil ditambahkan.');

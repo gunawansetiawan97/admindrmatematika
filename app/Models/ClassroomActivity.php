@@ -17,12 +17,12 @@ class ClassroomActivity extends Model
         'title',
         'content',
         'is_pinned',
-        'meeting_number',
+        'meeting_date',
     ];
 
     protected $casts = [
         'is_pinned' => 'boolean',
-        'meeting_number' => 'integer',
+        'meeting_date' => 'date',
     ];
 
     public function classroom(): BelongsTo
