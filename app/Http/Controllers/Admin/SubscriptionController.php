@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Classroom;
 use App\Models\Subscription;
 use App\Models\UserSubscription;
 use Illuminate\Http\Request;
@@ -40,7 +41,15 @@ class SubscriptionController extends Controller
         $validated['features'] = $request->features ?? [];
         $validated['days'] = $request->days ?? [];
 
-        Subscription::create($validated);
+        $subscription = Subscription::create($validated);
+
+        // Auto-create classroom with the same name
+        Classroom::create([
+            'subscription_id' => $subscription->id,
+            'name' => $subscription->name,
+            'description' => $subscription->description,
+            'is_active' => $subscription->is_active,
+        ]);
 
         return redirect()->route('admin.subscriptions.index')
             ->with('success', 'Paket kelas berhasil dibuat.');
