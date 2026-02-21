@@ -32,6 +32,18 @@ class ClassroomController extends Controller
         $classrooms = $query->orderBy('created_at', 'desc')->paginate(10);
         $subscriptions = Subscription::active()->get();
 
+        // Hitung siswa berlangganan yang belum terdaftar di kelas
+        $classrooms->each(function ($classroom) {
+            $existingMemberIds = $classroom->members()->pluck('user_id');
+            $classroom->unregistered_count = User::whereHas('userSubscriptions', function ($q) use ($classroom) {
+                $q->where('subscription_id', $classroom->subscription_id)
+                  ->where('status', 'active')
+                  ->where('expires_at', '>', now());
+            })
+            ->whereNotIn('id', $existingMemberIds)
+            ->count();
+        });
+
         return view('admin.classrooms.index', compact('classrooms', 'subscriptions'));
     }
 

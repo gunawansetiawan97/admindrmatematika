@@ -45,6 +45,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Kelas</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Anggota</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Belum Terdaftar</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aktivitas</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -68,6 +69,15 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span class="font-medium">{{ $classroom->members_count }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if($classroom->unregistered_count > 0)
+                                    <a href="{{ route('admin.classrooms.show', $classroom) }}" class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 hover:bg-red-200">
+                                        {{ $classroom->unregistered_count }} siswa
+                                    </a>
+                                @else
+                                    <span class="text-gray-400 text-sm">-</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span class="font-medium">{{ $classroom->activities_count }}</span>
