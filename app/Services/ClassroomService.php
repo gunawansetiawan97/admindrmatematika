@@ -168,12 +168,45 @@ class ClassroomService
             ->orderBy('joined_at', 'desc')
             ->get();
 
-        // Attach subscription info for each member
-        return $members->map(function ($member) use ($classroom) {
-            $member->userSubscription = UserSubscription::where('user_id', $member->user_id)
+        // Ambil semua tanggal pertemuan kelas (termasuk masa depan), urut ascending
+        $allMeetingDates = $classroom->activities()
+            ->whereNotNull('meeting_date')
+            ->orderBy('meeting_date')
+            ->pluck('meeting_date')
+            ->map(fn($d) => $d->format('Y-m-d'))
+            ->unique()->sort()->values();
+
+        $meetingsCount = $classroom->subscription->meetings_count;
+        if ($meetingsCount) {
+            $allMeetingDates = $allMeetingDates->take($meetingsCount)->values();
+        }
+
+        $today = now()->toDateString();
+
+        // Attach subscription info and meeting stats for each member
+        return $members->map(function ($member) use ($classroom, $allMeetingDates, $today) {
+            $subscriptionPeriods = UserSubscription::where('user_id', $member->user_id)
                 ->where('subscription_id', $classroom->subscription_id)
-                ->orderBy('expires_at', 'desc')
-                ->first();
+                ->get();
+
+            $member->userSubscription = $subscriptionPeriods->sortByDesc('expires_at')->first();
+
+            // Filter tanggal yang ada dalam periode langganan member ini
+            $userMeetingDates = $allMeetingDates->filter(function ($date) use ($subscriptionPeriods) {
+                foreach ($subscriptionPeriods as $period) {
+                    if ($date >= $period->starts_at->format('Y-m-d') &&
+                        $date <= $period->expires_at->format('Y-m-d')) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            $done = $userMeetingDates->filter(fn($d) => $d <= $today)->count();
+            $member->meeting_total     = $userMeetingDates->count();
+            $member->meeting_done      = $done;
+            $member->meeting_remaining = max(0, $member->meeting_total - $done);
+
             return $member;
         });
     }

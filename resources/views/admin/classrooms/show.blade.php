@@ -115,6 +115,22 @@
                                         @endif
                                     </div>
                                 @endif
+                                @if($member->meeting_total > 0)
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <div class="w-24 bg-gray-100 rounded-full h-1.5">
+                                            @php $mpct = round(($member->meeting_done / $member->meeting_total) * 100); @endphp
+                                            <div class="bg-blue-500 h-1.5 rounded-full" style="width: {{ $mpct }}%"></div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">
+                                            {{ $member->meeting_done }}/{{ $member->meeting_total }} pertemuan
+                                            @if($member->meeting_remaining > 0)
+                                                &bull; <span class="text-blue-600">sisa {{ $member->meeting_remaining }}</span>
+                                            @else
+                                                &bull; <span class="text-green-600">selesai</span>
+                                            @endif
+                                        </span>
+                                    </div>
+                                @endif
                                 <p class="text-xs text-gray-400 mt-1">
                                     Bergabung: {{ $member->joined_at->format('d M Y H:i') }}
                                     @if($member->addedBy)
