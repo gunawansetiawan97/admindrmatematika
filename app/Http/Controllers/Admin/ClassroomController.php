@@ -32,9 +32,10 @@ class ClassroomController extends Controller
         $classrooms = $query->orderBy('created_at', 'desc')->paginate(10);
         $subscriptions = Subscription::active()->get();
 
-        // Hitung siswa berlangganan yang belum terdaftar di kelas
+        // Hitung siswa belum terdaftar dan anggota aktif per kelas
         $classrooms->each(function ($classroom) {
             $existingMemberIds = $classroom->members()->pluck('user_id');
+
             $classroom->unregistered_count = User::whereHas('userSubscriptions', function ($q) use ($classroom) {
                 $q->where('subscription_id', $classroom->subscription_id)
                   ->where('status', 'active')
@@ -42,6 +43,13 @@ class ClassroomController extends Controller
             })
             ->whereNotIn('id', $existingMemberIds)
             ->count();
+
+            // Anggota yang subscriptionnya masih aktif
+            $classroom->active_members_count = \App\Models\UserSubscription::where('subscription_id', $classroom->subscription_id)
+                ->where('status', 'active')
+                ->where('expires_at', '>', now())
+                ->whereIn('user_id', $existingMemberIds)
+                ->count();
         });
 
         return view('admin.classrooms.index', compact('classrooms', 'subscriptions'));
@@ -83,7 +91,19 @@ class ClassroomController extends Controller
         $activities = $this->classroomService->getClassroomActivities($classroom);
         $availableStudents = $this->classroomService->getAvailableStudents($classroom);
 
-        return view('admin.classrooms.show', compact('classroom', 'members', 'activities', 'availableStudents'));
+        // Hitung sisa pertemuan
+        $totalMeetings = $classroom->subscription->meetings_count;
+        $doneMeetings = $classroom->activities()
+            ->whereNotNull('meeting_date')
+            ->where('meeting_date', '<=', now()->toDateString())
+            ->distinct('meeting_date')
+            ->count('meeting_date');
+        $remainingMeetings = $totalMeetings ? max(0, $totalMeetings - $doneMeetings) : null;
+
+        return view('admin.classrooms.show', compact(
+            'classroom', 'members', 'activities', 'availableStudents',
+            'totalMeetings', 'doneMeetings', 'remainingMeetings'
+        ));
     }
 
     public function edit(Classroom $classroom)

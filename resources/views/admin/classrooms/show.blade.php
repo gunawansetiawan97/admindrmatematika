@@ -26,6 +26,22 @@
             @if($classroom->description)
                 <p class="text-gray-600 mt-2">{{ $classroom->description }}</p>
             @endif
+            @if($totalMeetings)
+                <div class="flex items-center gap-3 mt-3">
+                    <div class="w-40 bg-gray-100 rounded-full h-2">
+                        @php $pct = $totalMeetings > 0 ? round(($doneMeetings / $totalMeetings) * 100) : 0; @endphp
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: {{ $pct }}%"></div>
+                    </div>
+                    <span class="text-sm text-gray-600 whitespace-nowrap">
+                        {{ $doneMeetings }}/{{ $totalMeetings }} pertemuan
+                        @if($remainingMeetings > 0)
+                            &bull; <span class="text-blue-600 font-medium">sisa {{ $remainingMeetings }}</span>
+                        @else
+                            &bull; <span class="text-green-600 font-medium">selesai</span>
+                        @endif
+                    </span>
+                </div>
+            @endif
         </div>
         <a href="{{ route('admin.classrooms.edit', $classroom) }}" class="px-4 py-2 border rounded-lg hover:bg-gray-50">
             Edit Kelas

@@ -69,6 +69,9 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span class="font-medium">{{ $classroom->members_count }}</span>
+                                @if($classroom->active_members_count > 0)
+                                    <div class="text-xs text-green-600">{{ $classroom->active_members_count }} aktif</div>
+                                @endif
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @if($classroom->unregistered_count > 0)
