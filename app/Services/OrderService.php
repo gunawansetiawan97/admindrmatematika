@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Mail\AdminRegistrationNotificationMail;
+use App\Mail\StudentRegistrationMail;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -12,6 +14,7 @@ use App\Models\User;
 use App\Models\UserPackage;
 use App\Models\UserSubscription;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class OrderService
 {
@@ -141,6 +144,14 @@ class OrderService
                                 'expires_at' => \Carbon\Carbon::parse($startsAt)->addDays($subscription->duration_days),
                                 'status' => 'active',
                             ]);
+
+                            // Kirim email konfirmasi ke murid dan notifikasi ke admin
+                            $startDateStr = \Carbon\Carbon::parse($startsAt)->toDateString();
+                            $order->load('user');
+                            Mail::to($order->user->email)
+                                ->send(new StudentRegistrationMail($order, $subscription, $startDateStr));
+                            Mail::to('css.gunawansetiawan@gmail.com')
+                                ->send(new AdminRegistrationNotificationMail($order, $subscription, $startDateStr));
                         }
                     }
                 }
