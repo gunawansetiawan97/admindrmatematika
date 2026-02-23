@@ -132,9 +132,15 @@ class OrderService
 
                         if ($existingSubscription) {
                             // Extend existing subscription duration
-                            $existingSubscription->update([
-                                'expires_at' => $existingSubscription->expires_at->addDays($subscription->duration_days),
-                            ]);
+                            $newExpiresAt = $existingSubscription->expires_at->addDays($subscription->duration_days);
+                            $existingSubscription->update(['expires_at' => $newExpiresAt]);
+
+                            // Kirim email perpanjangan ke murid dan admin
+                            $order->load('user');
+                            Mail::to($order->user->email)
+                                ->send(new StudentRegistrationMail($order, $subscription, $existingSubscription->starts_at->toDateString(), true, $newExpiresAt->toDateString()));
+                            Mail::to('css.gunawansetiawan@gmail.com')
+                                ->send(new AdminRegistrationNotificationMail($order, $subscription, $existingSubscription->starts_at->toDateString(), true, $newExpiresAt->toDateString()));
                         } else {
                             // Create new subscription dengan tanggal mulai pilihan user
                             UserSubscription::create([

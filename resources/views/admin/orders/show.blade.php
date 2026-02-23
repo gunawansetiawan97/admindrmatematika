@@ -40,6 +40,11 @@
                                 <span class="text-xs text-blue-600">Paket Soal</span>
                             @else
                                 <span class="text-xs text-purple-600">Kelas</span>
+                                @if($item->preferred_start_date)
+                                    <span class="block text-xs text-gray-500 mt-1">
+                                        Mulai: {{ $item->preferred_start_date->format('d M Y') }}
+                                    </span>
+                                @endif
                             @endif
                         </div>
                         <p class="font-medium">Rp {{ number_format($item->price, 0, ',', '.') }}</p>

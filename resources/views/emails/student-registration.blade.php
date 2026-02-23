@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendaftaran Kelas Berhasil</title>
+    <title>{{ $isExtension ? 'Perpanjangan Kelas Berhasil' : 'Pendaftaran Kelas Berhasil' }}</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
         .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -13,7 +13,7 @@
         .body p { line-height: 1.6; margin: 0 0 16px; }
         .info-box { background-color: #eff6ff; border-left: 4px solid #2563eb; border-radius: 4px; padding: 16px 20px; margin: 20px 0; }
         .info-row { display: flex; margin-bottom: 8px; }
-        .info-label { font-weight: bold; color: #555; min-width: 140px; }
+        .info-label { font-weight: bold; color: #555; min-width: 160px; }
         .info-value { color: #111; }
         .footer { background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 40px; text-align: center; color: #888; font-size: 13px; }
     </style>
@@ -21,11 +21,16 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Pendaftaran Kelas Berhasil!</h1>
+            <h1>{{ $isExtension ? 'Perpanjangan Kelas Berhasil!' : 'Pendaftaran Kelas Berhasil!' }}</h1>
         </div>
         <div class="body">
             <p>Halo, <strong>{{ $order->user->name }}</strong>,</p>
-            <p>Selamat! Pembayaran Anda telah dikonfirmasi dan pendaftaran kelas berhasil diproses.</p>
+
+            @if($isExtension)
+                <p>Pembayaran Anda telah dikonfirmasi dan perpanjangan kelas berhasil diproses.</p>
+            @else
+                <p>Selamat! Pembayaran Anda telah dikonfirmasi dan pendaftaran kelas berhasil diproses.</p>
+            @endif
 
             <div class="info-box">
                 <div class="info-row">
@@ -36,10 +41,17 @@
                     <span class="info-label">Kelas</span>
                     <span class="info-value">{{ $subscription->name }}</span>
                 </div>
+                @if($isExtension && $expiresAt)
+                <div class="info-row">
+                    <span class="info-label">Aktif Hingga</span>
+                    <span class="info-value">{{ \Carbon\Carbon::parse($expiresAt)->translatedFormat('d F Y') }}</span>
+                </div>
+                @else
                 <div class="info-row">
                     <span class="info-label">Tanggal Mulai</span>
                     <span class="info-value">{{ \Carbon\Carbon::parse($startsAt)->translatedFormat('d F Y') }}</span>
                 </div>
+                @endif
                 <div class="info-row">
                     <span class="info-label">Durasi</span>
                     <span class="info-value">{{ $subscription->duration_days }} hari</span>
@@ -58,8 +70,12 @@
                 @endif
             </div>
 
-            <p>Anda sudah bisa masuk ke kelas melalui aplikasi mulai tanggal <strong>{{ \Carbon\Carbon::parse($startsAt)->translatedFormat('d F Y') }}</strong>.</p>
-            <p>Terima kasih telah mendaftar. Semangat belajar!</p>
+            @if($isExtension)
+                <p>Masa aktif kelas Anda telah diperpanjang. Terus semangat belajar!</p>
+            @else
+                <p>Anda sudah bisa masuk ke kelas melalui aplikasi mulai tanggal <strong>{{ \Carbon\Carbon::parse($startsAt)->translatedFormat('d F Y') }}</strong>.</p>
+                <p>Terima kasih telah mendaftar. Semangat belajar!</p>
+            @endif
         </div>
         <div class="footer">
             <p>Kelas Olimpiade Matematika &bull; Email ini dikirim otomatis, harap tidak membalas.</p>

@@ -18,20 +18,22 @@ class StudentRegistrationMail extends Mailable
         public Order $order,
         public Subscription $subscription,
         public string $startsAt,
+        public bool $isExtension = false,
+        public ?string $expiresAt = null,
     ) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(
-            subject: 'Pendaftaran Kelas Berhasil - ' . $this->subscription->name,
-        );
+        $subject = $this->isExtension
+            ? 'Perpanjangan Kelas Berhasil - ' . $this->subscription->name
+            : 'Pendaftaran Kelas Berhasil - ' . $this->subscription->name;
+
+        return new Envelope(subject: $subject);
     }
 
     public function content(): Content
     {
-        return new Content(
-            view: 'emails.student-registration',
-        );
+        return new Content(view: 'emails.student-registration');
     }
 
     public function attachments(): array

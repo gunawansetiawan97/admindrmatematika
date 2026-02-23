@@ -18,20 +18,22 @@ class AdminRegistrationNotificationMail extends Mailable
         public Order $order,
         public Subscription $subscription,
         public string $startsAt,
+        public bool $isExtension = false,
+        public ?string $expiresAt = null,
     ) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(
-            subject: 'Murid Baru Terdaftar - ' . $this->subscription->name,
-        );
+        $subject = $this->isExtension
+            ? 'Perpanjangan Kelas Murid - ' . $this->subscription->name
+            : 'Murid Baru Terdaftar - ' . $this->subscription->name;
+
+        return new Envelope(subject: $subject);
     }
 
     public function content(): Content
     {
-        return new Content(
-            view: 'emails.admin-registration-notification',
-        );
+        return new Content(view: 'emails.admin-registration-notification');
     }
 
     public function attachments(): array
