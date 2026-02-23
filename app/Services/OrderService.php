@@ -117,6 +117,9 @@ class OrderService
                 } elseif ($item->orderable_type === Subscription::class) {
                     $subscription = Subscription::find($item->orderable_id);
                     if ($subscription) {
+                        // Gunakan tanggal mulai pilihan user, atau hari ini jika tidak dipilih
+                        $startsAt = $item->preferred_start_date ?? now()->startOfDay();
+
                         // Check if user has existing active subscription for this subscription type
                         $existingSubscription = UserSubscription::where('user_id', $order->user_id)
                             ->where('subscription_id', $subscription->id)
@@ -130,12 +133,12 @@ class OrderService
                                 'expires_at' => $existingSubscription->expires_at->addDays($subscription->duration_days),
                             ]);
                         } else {
-                            // Create new subscription
+                            // Create new subscription dengan tanggal mulai pilihan user
                             UserSubscription::create([
                                 'user_id' => $order->user_id,
                                 'subscription_id' => $subscription->id,
-                                'starts_at' => now(),
-                                'expires_at' => now()->addDays($subscription->duration_days),
+                                'starts_at' => $startsAt,
+                                'expires_at' => \Carbon\Carbon::parse($startsAt)->addDays($subscription->duration_days),
                                 'status' => 'active',
                             ]);
                         }

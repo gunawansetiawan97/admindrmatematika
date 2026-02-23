@@ -15,11 +15,13 @@ class OrderItem extends Model
         'orderable_id',
         'price',
         'quantity',
+        'preferred_start_date',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'quantity' => 'integer',
+        'preferred_start_date' => 'date',
     ];
 
     public function order()
