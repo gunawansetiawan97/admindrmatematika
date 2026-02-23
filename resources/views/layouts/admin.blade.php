@@ -19,7 +19,6 @@
                     <a href="{{ route('admin.dashboard') }}" class="text-xl font-bold">Admin Panel</a>
                     <div class="hidden md:flex space-x-1">
                         <a href="{{ route('admin.dashboard') }}" class="hover:bg-gray-700 px-3 py-2 rounded">Dashboard</a>
-                        <a href="{{ route('admin.packages.index') }}" class="hover:bg-gray-700 px-3 py-2 rounded">Paket Soal</a>
                         <a href="{{ route('admin.students.index') }}" class="hover:bg-gray-700 px-3 py-2 rounded">Murid</a>
                         <a href="{{ route('admin.orders.index') }}" class="hover:bg-gray-700 px-3 py-2 rounded relative">
                             Pesanan
@@ -63,7 +62,6 @@
         <div x-show="mobileMenuOpen" x-cloak class="md:hidden bg-gray-700">
             <div class="px-4 py-3 space-y-1">
                 <a href="{{ route('admin.dashboard') }}" class="block hover:bg-gray-600 px-3 py-2 rounded">Dashboard</a>
-                <a href="{{ route('admin.packages.index') }}" class="block hover:bg-gray-600 px-3 py-2 rounded">Paket Soal</a>
                 <a href="{{ route('admin.students.index') }}" class="block hover:bg-gray-600 px-3 py-2 rounded">Murid</a>
                 <a href="{{ route('admin.orders.index') }}" class="block hover:bg-gray-600 px-3 py-2 rounded flex items-center justify-between">
                     <span>Pesanan</span>
