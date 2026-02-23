@@ -198,9 +198,10 @@ class ClassroomService
                     ->count('meeting_date');
             }
 
-            $member->meeting_total     = $meetingsCount;
+            $memberTotal               = $meetingsCount ? $meetingsCount * $subscriptionPeriods->count() : null;
+            $member->meeting_total     = $memberTotal;
             $member->meeting_done      = $done;
-            $member->meeting_remaining = $meetingsCount ? max(0, $meetingsCount - $done) : null;
+            $member->meeting_remaining = $memberTotal ? max(0, $memberTotal - $done) : null;
 
             return $member;
         });
