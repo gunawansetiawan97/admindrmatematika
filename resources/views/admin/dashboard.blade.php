@@ -5,62 +5,84 @@
 @section('content')
 <h1 class="text-2xl font-bold mb-6">Dashboard Admin</h1>
 
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+{{-- Stat Cards --}}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
     <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-gray-500 text-sm">Total Murid</h3>
+        <h3 class="text-gray-500 text-sm mb-1">Total Murid</h3>
         <p class="text-3xl font-bold text-blue-600">{{ $totalStudents }}</p>
     </div>
     <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-gray-500 text-sm">Total Paket Soal</h3>
-        <p class="text-3xl font-bold text-green-600">{{ $totalPackages }}</p>
+        <h3 class="text-gray-500 text-sm mb-1">Paket Kelas</h3>
+        <p class="text-3xl font-bold text-purple-600">{{ $totalKelas }}</p>
     </div>
     <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-gray-500 text-sm">Paket Aktif</h3>
-        <p class="text-3xl font-bold text-yellow-600">{{ $activePackages }}</p>
+        <h3 class="text-gray-500 text-sm mb-1">Kelola Kelas</h3>
+        <p class="text-3xl font-bold text-green-600">{{ $totalClassrooms }}</p>
     </div>
     <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-gray-500 text-sm">Total Pengerjaan</h3>
-        <p class="text-3xl font-bold text-purple-600">{{ $totalAttempts }}</p>
+        <h3 class="text-gray-500 text-sm mb-1">Pembayaran Pending</h3>
+        <p class="text-3xl font-bold text-yellow-600">{{ $pendingPayments }}</p>
+        @if($pendingPayments > 0)
+            <a href="{{ route('admin.orders.pending-payments') }}" class="text-xs text-yellow-600 hover:underline">Lihat semua</a>
+        @endif
     </div>
 </div>
 
-<div class="bg-white rounded-lg shadow">
-    <div class="p-6 border-b">
-        <h2 class="text-xl font-bold">Pengerjaan Terbaru</h2>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {{-- Pembayaran Menunggu Verifikasi --}}
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 border-b bg-gray-50 flex justify-between items-center">
+            <h2 class="font-semibold text-lg">Menunggu Verifikasi</h2>
+            @if($pendingPayments > 0)
+                <a href="{{ route('admin.orders.pending-payments') }}" class="text-sm text-blue-600 hover:text-blue-800">Lihat semua</a>
+            @endif
+        </div>
+        @if($pendingPaymentList->count() > 0)
+            <div class="divide-y">
+                @foreach($pendingPaymentList as $payment)
+                <div class="px-6 py-3 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-medium">{{ $payment->order->user->name }}</p>
+                        <p class="text-xs text-gray-500">
+                            {{ $payment->order->items->map(fn($i) => $i->orderable->name ?? $i->orderable->title ?? '?')->join(', ') }}
+                        </p>
+                        <p class="text-xs text-gray-400">{{ $payment->created_at->format('d M Y H:i') }}</p>
+                    </div>
+                    <a href="{{ route('admin.orders.show', $payment->order) }}"
+                       class="text-xs bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full hover:bg-yellow-200">
+                        Verifikasi
+                    </a>
+                </div>
+                @endforeach
+            </div>
+        @else
+            <div class="px-6 py-8 text-center text-gray-400 text-sm">Tidak ada pembayaran pending.</div>
+        @endif
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Murid</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paket Soal</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mulai</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skor</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                @forelse($recentAttempts as $attempt)
-                    <tr>
-                        <td class="px-6 py-4">{{ $attempt->user->name }}</td>
-                        <td class="px-6 py-4">{{ $attempt->package->title }}</td>
-                        <td class="px-6 py-4">{{ $attempt->started_at->format('d/m/Y H:i') }}</td>
-                        <td class="px-6 py-4">{{ $attempt->score ?? '-' }}</td>
-                        <td class="px-6 py-4">
-                            @if($attempt->finished_at)
-                                <span class="px-2 py-1 text-xs rounded bg-green-100 text-green-800">Selesai</span>
-                            @else
-                                <span class="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800">Berlangsung</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">Belum ada pengerjaan</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+
+    {{-- Pesanan Terbaru Lunas --}}
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 border-b bg-gray-50">
+            <h2 class="font-semibold text-lg">Pesanan Lunas Terbaru</h2>
+        </div>
+        @if($recentPaidOrders->count() > 0)
+            <div class="divide-y">
+                @foreach($recentPaidOrders as $order)
+                <div class="px-6 py-3 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-medium">{{ $order->user->name }}</p>
+                        <p class="text-xs text-gray-500">
+                            {{ $order->items->map(fn($i) => $i->orderable->name ?? $i->orderable->title ?? '?')->join(', ') }}
+                        </p>
+                        <p class="text-xs text-gray-400">{{ $order->paid_at ? $order->paid_at->format('d M Y H:i') : '-' }}</p>
+                    </div>
+                    <span class="text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full">Lunas</span>
+                </div>
+                @endforeach
+            </div>
+        @else
+            <div class="px-6 py-8 text-center text-gray-400 text-sm">Belum ada pesanan lunas.</div>
+        @endif
     </div>
 </div>
 @endsection

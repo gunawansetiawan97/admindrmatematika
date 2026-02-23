@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\PackageAttempt;
-use App\Models\QuestionPackage;
+use App\Models\Classroom;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Models\Subscription;
 use App\Models\User;
 
 class DashboardController extends Controller
@@ -12,24 +14,31 @@ class DashboardController extends Controller
     public function index()
     {
         $totalStudents = User::count();
-        $totalPackages = QuestionPackage::count();
-        $activePackages = QuestionPackage::where('is_active', true)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->count();
-        $totalAttempts = PackageAttempt::count();
+        $totalKelas = Subscription::where('is_active', true)->count();
+        $totalClassrooms = Classroom::where('is_active', true)->count();
+        $pendingPayments = Payment::where('status', 'pending')->count();
 
-        $recentAttempts = PackageAttempt::with(['user', 'package'])
-            ->orderBy('created_at', 'desc')
+        // Pembayaran menunggu verifikasi
+        $pendingPaymentList = Payment::with(['order.user', 'order.items.orderable'])
+            ->where('status', 'pending')
+            ->orderByDesc('created_at')
             ->limit(10)
+            ->get();
+
+        // Pesanan terbaru yang sudah lunas
+        $recentPaidOrders = Order::with(['user', 'items.orderable'])
+            ->where('status', 'paid')
+            ->orderByDesc('paid_at')
+            ->limit(5)
             ->get();
 
         return view('admin.dashboard', compact(
             'totalStudents',
-            'totalPackages',
-            'activePackages',
-            'totalAttempts',
-            'recentAttempts'
+            'totalKelas',
+            'totalClassrooms',
+            'pendingPayments',
+            'pendingPaymentList',
+            'recentPaidOrders'
         ));
     }
 }
