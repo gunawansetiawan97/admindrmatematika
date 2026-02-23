@@ -168,44 +168,39 @@ class ClassroomService
             ->orderBy('joined_at', 'desc')
             ->get();
 
-        // Ambil semua tanggal pertemuan kelas (termasuk masa depan), urut ascending
-        $allMeetingDates = $classroom->activities()
-            ->whereNotNull('meeting_date')
-            ->orderBy('meeting_date')
-            ->pluck('meeting_date')
-            ->map(fn($d) => $d->format('Y-m-d'))
-            ->unique()->sort()->values();
-
         $meetingsCount = $classroom->subscription->meetings_count;
-        if ($meetingsCount) {
-            $allMeetingDates = $allMeetingDates->take($meetingsCount)->values();
-        }
-
         $today = now()->toDateString();
 
         // Attach subscription info and meeting stats for each member
-        return $members->map(function ($member) use ($classroom, $allMeetingDates, $today) {
+        return $members->map(function ($member) use ($classroom, $meetingsCount, $today) {
             $subscriptionPeriods = UserSubscription::where('user_id', $member->user_id)
                 ->where('subscription_id', $classroom->subscription_id)
                 ->get();
 
             $member->userSubscription = $subscriptionPeriods->sortByDesc('expires_at')->first();
 
-            // Filter tanggal yang ada dalam periode langganan member ini
-            $userMeetingDates = $allMeetingDates->filter(function ($date) use ($subscriptionPeriods) {
-                foreach ($subscriptionPeriods as $period) {
-                    if ($date >= $period->starts_at->format('Y-m-d') &&
-                        $date <= $period->expires_at->format('Y-m-d')) {
-                        return true;
-                    }
-                }
-                return false;
-            });
+            // total = meetings_count dari paket, done = pertemuan yg sudah terjadi dlm periode member
+            $done = 0;
+            if ($meetingsCount && $subscriptionPeriods->isNotEmpty()) {
+                $done = $classroom->activities()
+                    ->whereNotNull('meeting_date')
+                    ->where('meeting_date', '<=', $today)
+                    ->where(function ($q) use ($subscriptionPeriods) {
+                        foreach ($subscriptionPeriods as $i => $period) {
+                            $method = $i === 0 ? 'where' : 'orWhere';
+                            $q->$method(function ($inner) use ($period) {
+                                $inner->where('meeting_date', '>=', $period->starts_at->toDateString())
+                                      ->where('meeting_date', '<=', $period->expires_at->toDateString());
+                            });
+                        }
+                    })
+                    ->distinct('meeting_date')
+                    ->count('meeting_date');
+            }
 
-            $done = $userMeetingDates->filter(fn($d) => $d <= $today)->count();
-            $member->meeting_total     = $userMeetingDates->count();
+            $member->meeting_total     = $meetingsCount;
             $member->meeting_done      = $done;
-            $member->meeting_remaining = max(0, $member->meeting_total - $done);
+            $member->meeting_remaining = $meetingsCount ? max(0, $meetingsCount - $done) : null;
 
             return $member;
         });
