@@ -198,7 +198,14 @@ class ClassroomService
                     ->count('meeting_date');
             }
 
-            $memberTotal               = $meetingsCount ? $meetingsCount * $subscriptionPeriods->count() : null;
+            // Hitung jumlah periode: perpanjangan meng-update expires_at di record yg sama
+            // Jadi periods = (expires_at - starts_at) / duration_days
+            $durationDays = $classroom->subscription->duration_days;
+            $userSub      = $member->userSubscription;
+            $periods = ($userSub && $durationDays)
+                ? max(1, (int) round($userSub->starts_at->diffInDays($userSub->expires_at) / $durationDays))
+                : max(1, $subscriptionPeriods->count());
+            $memberTotal               = $meetingsCount ? $meetingsCount * $periods : null;
             $member->meeting_total     = $memberTotal;
             $member->meeting_done      = $done;
             $member->meeting_remaining = $memberTotal ? max(0, $memberTotal - $done) : null;
