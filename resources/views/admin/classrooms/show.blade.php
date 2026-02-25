@@ -32,14 +32,14 @@
                         @php $pct = $totalMeetings > 0 ? round(($doneMeetings / $totalMeetings) * 100) : 0; @endphp
                         <div class="bg-blue-500 h-2 rounded-full" style="width: {{ $pct }}%"></div>
                     </div>
-                    <span class="text-sm text-gray-600 whitespace-nowrap">
+                    {{-- <span class="text-sm text-gray-600 whitespace-nowrap">
                         {{ $doneMeetings }}/{{ $totalMeetings }} pertemuan
                         @if($remainingMeetings > 0)
                             &bull; <span class="text-blue-600 font-medium">sisa {{ $remainingMeetings }}</span>
                         @else
                             &bull; <span class="text-green-600 font-medium">selesai</span>
                         @endif
-                    </span>
+                    </span> --}}
                 </div>
             @endif
         </div>
