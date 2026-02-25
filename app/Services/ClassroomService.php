@@ -220,11 +220,11 @@ class ClassroomService
         $to->loadMissing('subscription');
         $durationDays = $to->subscription->duration_days;
 
-        // Nonaktifkan subscription lama (tetap di DB untuk histori)
+        // Batalkan subscription lama (tetap di DB untuk histori)
         UserSubscription::where('user_id', $user->id)
             ->where('subscription_id', $from->subscription_id)
             ->where('status', 'active')
-            ->update(['status' => 'inactive']);
+            ->update(['status' => 'cancelled']);
 
         // Buat subscription baru dari tanggal yang dipilih
         UserSubscription::create([
