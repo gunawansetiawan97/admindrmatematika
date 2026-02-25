@@ -172,8 +172,12 @@
                                                     <label class="block text-sm font-medium text-gray-700 mb-1">Kelas Tujuan</label>
                                                     <select name="target_classroom_id" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                                         <option value="">Pilih kelas...</option>
-                                                        @foreach($otherClassrooms as $other)
-                                                            <option value="{{ $other->id }}">{{ $other->name }}</option>
+                                                        @foreach($otherClassrooms->groupBy(fn($c) => $c->subscription->name) as $subName => $group)
+                                                            <optgroup label="{{ $subName }}">
+                                                                @foreach($group as $other)
+                                                                    <option value="{{ $other->id }}">{{ $other->name }}</option>
+                                                                @endforeach
+                                                            </optgroup>
                                                         @endforeach
                                                     </select>
                                                 </div>

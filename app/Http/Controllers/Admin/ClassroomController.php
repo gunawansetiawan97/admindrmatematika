@@ -101,10 +101,11 @@ class ClassroomController extends Controller
             ->count('meeting_date');
         $remainingMeetings = $totalMeetings ? max(0, $totalMeetings - $doneMeetings) : null;
 
-        // Kelas lain dengan subscription yang sama (untuk fitur pindah siswa)
-        $otherClassrooms = Classroom::where('subscription_id', $classroom->subscription_id)
+        // Semua kelas aktif lain (lintas subscription) untuk fitur pindah siswa
+        $otherClassrooms = Classroom::with('subscription')
             ->where('id', '!=', $classroom->id)
             ->where('is_active', true)
+            ->orderBy('name')
             ->get();
 
         return view('admin.classrooms.show', compact(

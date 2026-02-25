@@ -217,7 +217,8 @@ class ClassroomService
 
     public function moveMember(Classroom $from, Classroom $to, User $user, Admin $admin, Carbon $startsAt): void
     {
-        $durationDays = $from->subscription->duration_days;
+        $to->loadMissing('subscription');
+        $durationDays = $to->subscription->duration_days;
 
         // Nonaktifkan subscription lama (tetap di DB untuk histori)
         UserSubscription::where('user_id', $user->id)
