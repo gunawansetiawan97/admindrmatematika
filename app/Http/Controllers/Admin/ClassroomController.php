@@ -8,6 +8,7 @@ use App\Models\ClassroomActivity;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\ClassroomService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -100,9 +101,15 @@ class ClassroomController extends Controller
             ->count('meeting_date');
         $remainingMeetings = $totalMeetings ? max(0, $totalMeetings - $doneMeetings) : null;
 
+        // Kelas lain dengan subscription yang sama (untuk fitur pindah siswa)
+        $otherClassrooms = Classroom::where('subscription_id', $classroom->subscription_id)
+            ->where('id', '!=', $classroom->id)
+            ->where('is_active', true)
+            ->get();
+
         return view('admin.classrooms.show', compact(
             'classroom', 'members', 'activities', 'availableStudents',
-            'totalMeetings', 'doneMeetings', 'remainingMeetings'
+            'totalMeetings', 'doneMeetings', 'remainingMeetings', 'otherClassrooms'
         ));
     }
 
@@ -180,6 +187,32 @@ class ClassroomController extends Controller
         $this->classroomService->removeMember($classroom, $user);
 
         return back()->with('success', 'Murid berhasil dihapus dari kelas.');
+    }
+
+    public function moveMember(Request $request, Classroom $classroom, User $user)
+    {
+        $validated = $request->validate([
+            'target_classroom_id' => ['required', 'exists:classrooms,id', 'different:' . $classroom->id],
+            'starts_at'           => ['required', 'date'],
+        ], [
+            'target_classroom_id.required' => 'Pilih kelas tujuan.',
+            'target_classroom_id.different' => 'Kelas tujuan tidak boleh sama dengan kelas saat ini.',
+            'starts_at.required'           => 'Tanggal mulai wajib diisi.',
+        ]);
+
+        $targetClassroom = Classroom::findOrFail($validated['target_classroom_id']);
+        $admin = Auth::guard('admin')->user();
+
+        $this->classroomService->moveMember(
+            $classroom,
+            $targetClassroom,
+            $user,
+            $admin,
+            Carbon::parse($validated['starts_at'])
+        );
+
+        return redirect()->route('admin.classrooms.show', $targetClassroom)
+            ->with('success', "{$user->name} berhasil dipindahkan ke {$targetClassroom->name}.");
     }
 
     public function storeActivity(Request $request, Classroom $classroom)

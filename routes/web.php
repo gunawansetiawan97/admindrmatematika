@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
 use App\Http\Controllers\Admin\ClassroomController as AdminClassroomController;
+use App\Http\Controllers\Admin\BulkActivityController as AdminBulkActivityController;
 use App\Http\Controllers\XenditWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -77,9 +78,14 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
     Route::resource('classrooms', AdminClassroomController::class);
     Route::post('/classrooms/{classroom}/members', [AdminClassroomController::class, 'addMember'])->name('classrooms.members.add');
     Route::delete('/classrooms/{classroom}/members/{user}', [AdminClassroomController::class, 'removeMember'])->name('classrooms.members.remove');
+    Route::post('/classrooms/{classroom}/members/{user}/move', [AdminClassroomController::class, 'moveMember'])->name('classrooms.members.move');
     Route::post('/classrooms/{classroom}/activities', [AdminClassroomController::class, 'storeActivity'])->name('classrooms.activities.store');
     Route::delete('/activities/{activity}', [AdminClassroomController::class, 'destroyActivity'])->name('activities.destroy');
     Route::post('/activities/{activity}/pin', [AdminClassroomController::class, 'togglePinActivity'])->name('activities.pin');
+
+    // Bulk Activities
+    Route::get('/activities/bulk', [AdminBulkActivityController::class, 'index'])->name('activities.bulk');
+    Route::post('/activities/bulk', [AdminBulkActivityController::class, 'store'])->name('activities.bulk.store');
 });
 
 /*

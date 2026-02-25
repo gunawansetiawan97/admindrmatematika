@@ -31,6 +31,7 @@
                         </a>
                         <a href="{{ route('admin.subscriptions.index') }}" class="hover:bg-gray-700 px-3 py-2 rounded">Kelas</a>
                         <a href="{{ route('admin.classrooms.index') }}" class="hover:bg-gray-700 px-3 py-2 rounded">Kelola Kelas</a>
+                        <a href="{{ route('admin.activities.bulk') }}" class="hover:bg-gray-700 px-3 py-2 rounded">Upload Massal</a>
                     </div>
                 </div>
 
@@ -71,6 +72,7 @@
                 </a>
                 <a href="{{ route('admin.subscriptions.index') }}" class="block hover:bg-gray-600 px-3 py-2 rounded">Kelas</a>
                 <a href="{{ route('admin.classrooms.index') }}" class="block hover:bg-gray-600 px-3 py-2 rounded">Kelola Kelas</a>
+                <a href="{{ route('admin.activities.bulk') }}" class="block hover:bg-gray-600 px-3 py-2 rounded">Upload Massal</a>
                 <div class="border-t border-gray-500 my-2"></div>
                 <div class="px-3 py-2 text-gray-300 flex items-center">
                     <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

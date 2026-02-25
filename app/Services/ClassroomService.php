@@ -8,6 +8,7 @@ use App\Models\ClassroomActivity;
 use App\Models\ClassroomMember;
 use App\Models\User;
 use App\Models\UserSubscription;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class ClassroomService
@@ -212,6 +213,38 @@ class ClassroomService
 
             return $member;
         });
+    }
+
+    public function moveMember(Classroom $from, Classroom $to, User $user, Admin $admin, Carbon $startsAt): void
+    {
+        $durationDays = $from->subscription->duration_days;
+
+        // Nonaktifkan subscription lama (tetap di DB untuk histori)
+        UserSubscription::where('user_id', $user->id)
+            ->where('subscription_id', $from->subscription_id)
+            ->where('status', 'active')
+            ->update(['status' => 'inactive']);
+
+        // Buat subscription baru dari tanggal yang dipilih
+        UserSubscription::create([
+            'user_id'         => $user->id,
+            'subscription_id' => $to->subscription_id,
+            'starts_at'       => $startsAt->startOfDay(),
+            'expires_at'      => $startsAt->copy()->addDays($durationDays)->endOfDay(),
+            'status'          => 'active',
+        ]);
+
+        // Pindahkan ClassroomMember
+        ClassroomMember::where('classroom_id', $from->id)
+            ->where('user_id', $user->id)
+            ->delete();
+
+        ClassroomMember::create([
+            'classroom_id' => $to->id,
+            'user_id'      => $user->id,
+            'added_by'     => $admin->id,
+            'joined_at'    => $startsAt->startOfDay(),
+        ]);
     }
 
     public function createActivity(Classroom $classroom, Admin $admin, array $data): ClassroomActivity

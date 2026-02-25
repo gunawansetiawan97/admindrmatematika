@@ -138,16 +138,62 @@
                                     @endif
                                 </p>
                             </div>
-                            <form action="{{ route('admin.classrooms.members.remove', [$classroom, $member->user]) }}" method="POST"
-                                onsubmit="return confirm('Hapus murid ini dari kelas?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
-                            </form>
+                            <div class="flex items-center gap-2" x-data="{ moveOpen: false }">
+                                {{-- Tombol Pindah --}}
+                                @if($otherClassrooms->count() > 0)
+                                    <button @click="moveOpen = true" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                        Pindah
+                                    </button>
+                                @endif
+
+                                {{-- Tombol Hapus --}}
+                                <form action="{{ route('admin.classrooms.members.remove', [$classroom, $member->user]) }}" method="POST"
+                                    onsubmit="return confirm('Hapus murid ini dari kelas?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-800">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+
+                                {{-- Modal Pindah --}}
+                                <div x-show="moveOpen" x-cloak
+                                    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                                    @keydown.escape.window="moveOpen = false">
+                                    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4" @click.outside="moveOpen = false">
+                                        <div class="p-6">
+                                            <h3 class="text-lg font-bold mb-1">Pindah Murid</h3>
+                                            <p class="text-sm text-gray-500 mb-4">{{ $member->user->name }}</p>
+                                            <form action="{{ route('admin.classrooms.members.move', [$classroom, $member->user]) }}" method="POST">
+                                                @csrf
+                                                <div class="mb-4">
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Kelas Tujuan</label>
+                                                    <select name="target_classroom_id" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                                        <option value="">Pilih kelas...</option>
+                                                        @foreach($otherClassrooms as $other)
+                                                            <option value="{{ $other->id }}">{{ $other->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="mb-6">
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai di Kelas Baru</label>
+                                                    <input type="date" name="starts_at" required
+                                                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                    <p class="text-xs text-gray-500 mt-1">Subscription lama dinonaktifkan, subscription baru dibuat dari tanggal ini.</p>
+                                                </div>
+                                                <div class="flex justify-end gap-3">
+                                                    <button type="button" @click="moveOpen = false"
+                                                        class="px-4 py-2 border rounded-lg hover:bg-gray-50">Batal</button>
+                                                    <button type="submit"
+                                                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Pindahkan</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     @endforeach
                 </div>
