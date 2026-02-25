@@ -19,10 +19,12 @@ use Illuminate\Support\Facades\Mail;
 class OrderService
 {
     protected CartService $cartService;
+    protected ClassroomService $classroomService;
 
-    public function __construct(CartService $cartService)
+    public function __construct(CartService $cartService, ClassroomService $classroomService)
     {
-        $this->cartService = $cartService;
+        $this->cartService      = $cartService;
+        $this->classroomService = $classroomService;
     }
 
     public function createOrderFromCart(User $user): Order
@@ -135,15 +137,21 @@ class OrderService
                             $newExpiresAt = $existingSubscription->expires_at->addDays($subscription->duration_days);
                             $existingSubscription->update(['expires_at' => $newExpiresAt]);
 
-                            // Kirim email perpanjangan ke murid dan admin
+                            // Sync meeting histories: aktivitas yang sekarang masuk periode baru
                             $order->load('user');
+                            $existingSubscription->refresh();
+                            $this->classroomService->syncMeetingHistoriesForSubscription(
+                                $order->user, $subscription->id, $existingSubscription
+                            );
+
+                            // Kirim email perpanjangan ke murid dan admin
                             Mail::to($order->user->email)
                                 ->send(new StudentRegistrationMail($order, $subscription, $existingSubscription->starts_at->toDateString(), true, $newExpiresAt->toDateString()));
                             Mail::to('css.gunawansetiawan@gmail.com')
                                 ->send(new AdminRegistrationNotificationMail($order, $subscription, $existingSubscription->starts_at->toDateString(), true, $newExpiresAt->toDateString()));
                         } else {
                             // Create new subscription dengan tanggal mulai pilihan user
-                            UserSubscription::create([
+                            $newSub = UserSubscription::create([
                                 'user_id' => $order->user_id,
                                 'subscription_id' => $subscription->id,
                                 'starts_at' => $startsAt,
@@ -151,9 +159,14 @@ class OrderService
                                 'status' => 'active',
                             ]);
 
+                            // Sync meeting histories untuk classroom yang sudah diikuti (jika ada)
+                            $order->load('user');
+                            $this->classroomService->syncMeetingHistoriesForSubscription(
+                                $order->user, $subscription->id, $newSub
+                            );
+
                             // Kirim email konfirmasi ke murid dan notifikasi ke admin
                             $startDateStr = \Carbon\Carbon::parse($startsAt)->toDateString();
-                            $order->load('user');
                             Mail::to($order->user->email)
                                 ->send(new StudentRegistrationMail($order, $subscription, $startDateStr));
                             Mail::to('css.gunawansetiawan@gmail.com')

@@ -119,12 +119,38 @@ class ClassroomService
 
     public function addMember(Classroom $classroom, User $user, Admin $admin): ClassroomMember
     {
-        return ClassroomMember::create([
+        $member = ClassroomMember::create([
             'classroom_id' => $classroom->id,
-            'user_id' => $user->id,
-            'added_by' => $admin->id,
-            'joined_at' => now(),
+            'user_id'      => $user->id,
+            'added_by'     => $admin->id,
+            'joined_at'    => now(),
         ]);
+
+        // Sync meeting histories: catat pertemuan masa lalu yang masuk periode subscription baru
+        $sub = UserSubscription::where('user_id', $user->id)
+            ->where('subscription_id', $classroom->subscription_id)
+            ->where('status', 'active')
+            ->first();
+        if ($sub) {
+            $this->syncMeetingHistories($user, $classroom, $sub);
+        }
+
+        return $member;
+    }
+
+    /**
+     * Sync meeting histories untuk semua kelas yang diikuti user berdasarkan subscription tertentu.
+     * Dipanggil saat subscription baru dibuat atau diperpanjang.
+     */
+    public function syncMeetingHistoriesForSubscription(User $user, int $subscriptionId, UserSubscription $userSub): void
+    {
+        $classrooms = Classroom::whereHas('members', fn($q) => $q->where('user_id', $user->id))
+            ->where('subscription_id', $subscriptionId)
+            ->get();
+
+        foreach ($classrooms as $classroom) {
+            $this->syncMeetingHistories($user, $classroom, $userSub);
+        }
     }
 
     public function removeMember(Classroom $classroom, User $user): bool

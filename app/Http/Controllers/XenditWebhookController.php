@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\ClassroomService;
 use App\Services\OrderService;
 use App\Services\XenditService;
 use Illuminate\Http\Request;
@@ -13,11 +14,13 @@ class XenditWebhookController extends Controller
 {
     protected XenditService $xenditService;
     protected OrderService $orderService;
+    protected ClassroomService $classroomService;
 
-    public function __construct(XenditService $xenditService, OrderService $orderService)
+    public function __construct(XenditService $xenditService, OrderService $orderService, ClassroomService $classroomService)
     {
-        $this->xenditService = $xenditService;
-        $this->orderService = $orderService;
+        $this->xenditService    = $xenditService;
+        $this->orderService     = $orderService;
+        $this->classroomService = $classroomService;
     }
 
     /**
@@ -162,20 +165,29 @@ class XenditWebhookController extends Controller
                         ->where('expires_at', '>', now())
                         ->first();
 
+                    $order->load('user');
+
                     if ($existingSubscription) {
                         // Extend existing subscription
                         $existingSubscription->update([
                             'expires_at' => $existingSubscription->expires_at->addDays($subscription->duration_days),
                         ]);
+                        $existingSubscription->refresh();
+                        $this->classroomService->syncMeetingHistoriesForSubscription(
+                            $order->user, $subscription->id, $existingSubscription
+                        );
                     } else {
                         // Create new subscription
-                        \App\Models\UserSubscription::create([
-                            'user_id' => $order->user_id,
+                        $newSub = \App\Models\UserSubscription::create([
+                            'user_id'         => $order->user_id,
                             'subscription_id' => $subscription->id,
-                            'starts_at' => now(),
-                            'expires_at' => now()->addDays($subscription->duration_days),
-                            'status' => 'active',
+                            'starts_at'       => now(),
+                            'expires_at'      => now()->addDays($subscription->duration_days),
+                            'status'          => 'active',
                         ]);
+                        $this->classroomService->syncMeetingHistoriesForSubscription(
+                            $order->user, $subscription->id, $newSub
+                        );
                     }
                 }
             }
