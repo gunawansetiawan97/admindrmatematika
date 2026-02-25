@@ -7,6 +7,7 @@ use App\Models\Classroom;
 use App\Models\ClassroomActivity;
 use App\Models\ClassroomMember;
 use App\Models\User;
+use App\Models\UserMeetingHistory;
 use App\Models\UserSubscription;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -303,19 +304,73 @@ class ClassroomService
             'added_by'     => $admin->id,
             'joined_at'    => $startsAt->startOfDay(),
         ]);
+
+        // Catat history pertemuan yang sudah lewat di kelas baru
+        $newSub = UserSubscription::where('user_id', $user->id)
+            ->where('subscription_id', $to->subscription_id)
+            ->where('status', 'active')
+            ->latest('id')
+            ->first();
+        if ($newSub) {
+            $this->syncMeetingHistories($user, $to, $newSub);
+        }
+    }
+
+    public function syncMeetingHistories(User $user, Classroom $classroom, UserSubscription $subscription): int
+    {
+        $activities = $classroom->activities()
+            ->whereNotNull('meeting_date')
+            ->where('meeting_date', '<=', now()->toDateString())
+            ->where('meeting_date', '>=', $subscription->starts_at->toDateString())
+            ->where('meeting_date', '<=', $subscription->expires_at->toDateString())
+            ->get();
+
+        if ($activities->isEmpty()) {
+            return 0;
+        }
+
+        $now  = now();
+        $rows = $activities->map(fn($a) => [
+            'user_id'               => $user->id,
+            'classroom_id'          => $classroom->id,
+            'classroom_activity_id' => $a->id,
+            'meeting_date'          => $a->meeting_date->toDateString(),
+            'created_at'            => $now,
+            'updated_at'            => $now,
+        ])->all();
+
+        UserMeetingHistory::insertOrIgnore($rows);
+
+        return count($rows);
     }
 
     public function createActivity(Classroom $classroom, Admin $admin, array $data): ClassroomActivity
     {
-        return ClassroomActivity::create([
+        $activity = ClassroomActivity::create([
             'classroom_id' => $classroom->id,
-            'admin_id' => $admin->id,
-            'type' => $data['type'],
-            'title' => $data['title'],
-            'content' => $data['content'],
-            'is_pinned' => $data['is_pinned'] ?? false,
+            'admin_id'     => $admin->id,
+            'type'         => $data['type'],
+            'title'        => $data['title'],
+            'content'      => $data['content'],
+            'is_pinned'    => $data['is_pinned'] ?? false,
             'meeting_date' => $data['meeting_date'] ?? null,
         ]);
+
+        // Jika meeting_date sudah lewat/hari ini, langsung sync history untuk semua anggota
+        if ($activity->meeting_date && $activity->meeting_date->lte(now())) {
+            $classroom->loadMissing('subscription');
+            foreach ($classroom->members()->get() as $member) {
+                $sub = UserSubscription::where('user_id', $member->user_id)
+                    ->where('subscription_id', $classroom->subscription_id)
+                    ->where('status', 'active')
+                    ->first();
+                if ($sub) {
+                    $this->syncMeetingHistories($member->user, $classroom, $sub);
+                }
+            }
+        }
+
+        return $activity;
     }
 
     public function togglePin(ClassroomActivity $activity): bool
