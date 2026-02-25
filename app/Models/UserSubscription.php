@@ -15,11 +15,13 @@ class UserSubscription extends Model
         'starts_at',
         'expires_at',
         'status',
+        'meetings_remaining',
     ];
 
     protected $casts = [
-        'starts_at' => 'datetime',
-        'expires_at' => 'datetime',
+        'starts_at'          => 'datetime',
+        'expires_at'         => 'datetime',
+        'meetings_remaining' => 'integer',
     ];
 
     public function user()

@@ -206,7 +206,18 @@ class ClassroomService
             $periods = ($userSub && $durationDays)
                 ? max(1, (int) round($userSub->starts_at->diffInDays($userSub->expires_at) / $durationDays))
                 : max(1, $subscriptionPeriods->count());
-            $memberTotal               = $meetingsCount ? $meetingsCount * $periods : null;
+
+            // Gunakan meetings_remaining sebagai total jika ada (siswa pindahan),
+            // jika tidak hitung dari meetings_count * periods
+            $activeSub = $subscriptionPeriods
+                ->where('status', 'active')
+                ->filter(fn($s) => $s->expires_at > now())
+                ->first();
+            if ($activeSub && $activeSub->meetings_remaining !== null) {
+                $memberTotal = $activeSub->meetings_remaining;
+            } else {
+                $memberTotal = $meetingsCount ? $meetingsCount * $periods : null;
+            }
             $member->meeting_total     = $memberTotal;
             $member->meeting_done      = $done;
             $member->meeting_remaining = $memberTotal ? max(0, $memberTotal - $done) : null;
@@ -217,8 +228,53 @@ class ClassroomService
 
     public function moveMember(Classroom $from, Classroom $to, User $user, Admin $admin, Carbon $startsAt): void
     {
+        $from->loadMissing('subscription');
         $to->loadMissing('subscription');
-        $durationDays = $to->subscription->duration_days;
+
+        // Ambil subscription lama yang aktif
+        $oldSubscription = UserSubscription::where('user_id', $user->id)
+            ->where('subscription_id', $from->subscription_id)
+            ->where('status', 'active')
+            ->first();
+
+        // Hitung sisa pertemuan dari subscription lama
+        $meetingsRemaining = null;
+        if ($oldSubscription) {
+            $meetingsCount = $from->subscription->meetings_count;
+
+            // Base total: gunakan meetings_remaining jika sudah pernah pindah sebelumnya,
+            // atau hitung dari meetings_count * periods
+            if ($oldSubscription->meetings_remaining !== null) {
+                $remainingBase = $oldSubscription->meetings_remaining;
+            } elseif ($meetingsCount) {
+                $durationDays = $from->subscription->duration_days;
+                $periods = ($durationDays)
+                    ? max(1, (int) round($oldSubscription->starts_at->diffInDays($oldSubscription->expires_at) / $durationDays))
+                    : 1;
+                $remainingBase = $meetingsCount * $periods;
+            } else {
+                $remainingBase = null;
+            }
+
+            if ($remainingBase !== null) {
+                $today = now()->toDateString();
+                $done = $from->activities()
+                    ->whereNotNull('meeting_date')
+                    ->where('meeting_date', '<=', $today)
+                    ->where(function ($q) use ($oldSubscription) {
+                        $q->where('meeting_date', '>=', $oldSubscription->starts_at->toDateString())
+                          ->where('meeting_date', '<=', $oldSubscription->expires_at->toDateString());
+                    })
+                    ->distinct('meeting_date')
+                    ->count('meeting_date');
+                $meetingsRemaining = max(0, $remainingBase - $done);
+            }
+        }
+
+        // Preservasi expires_at lama agar sisa durasi tetap berlanjut
+        $expiresAt = $oldSubscription
+            ? $oldSubscription->expires_at
+            : $startsAt->copy()->addDays($to->subscription->duration_days)->endOfDay();
 
         // Batalkan subscription lama (tetap di DB untuk histori)
         UserSubscription::where('user_id', $user->id)
@@ -226,13 +282,14 @@ class ClassroomService
             ->where('status', 'active')
             ->update(['status' => 'cancelled']);
 
-        // Buat subscription baru dari tanggal yang dipilih
+        // Buat subscription baru dengan expires_at dan sisa pertemuan yang dipreservasi
         UserSubscription::create([
-            'user_id'         => $user->id,
-            'subscription_id' => $to->subscription_id,
-            'starts_at'       => $startsAt->startOfDay(),
-            'expires_at'      => $startsAt->copy()->addDays($durationDays)->endOfDay(),
-            'status'          => 'active',
+            'user_id'             => $user->id,
+            'subscription_id'     => $to->subscription_id,
+            'starts_at'           => $startsAt->startOfDay(),
+            'expires_at'          => $expiresAt,
+            'status'              => 'active',
+            'meetings_remaining'  => $meetingsRemaining,
         ]);
 
         // Pindahkan ClassroomMember
