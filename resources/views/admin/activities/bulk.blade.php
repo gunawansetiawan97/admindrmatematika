@@ -87,11 +87,20 @@
 
                                 <div x-show="selected.includes({{ $classroom->id }})" x-cloak class="mt-2 pl-7">
                                     <label class="block text-xs text-gray-600 mb-1">Tanggal Rilis / Pertemuan</label>
-                                    <input type="date"
-                                        name="meeting_dates[{{ $classroom->id }}]"
-                                        value="{{ old("meeting_dates.{$classroom->id}") }}"
-                                        class="w-48 px-2 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <span class="text-xs text-gray-400 ml-1">(opsional)</span>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <input type="date"
+                                            name="meeting_dates[{{ $classroom->id }}]"
+                                            value="{{ old("meeting_dates.{$classroom->id}") }}"
+                                            @change="checkDate({{ $classroom->id }}, $event.target.value)"
+                                            class="w-48 px-2 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <span class="text-xs text-gray-400">(opsional)</span>
+                                        @if($classroom->subscription->days && count($classroom->subscription->days))
+                                            <span class="text-xs text-gray-400">• Jadwal: {{ implode(', ', $classroom->subscription->days) }}</span>
+                                        @endif
+                                    </div>
+                                    <p x-show="dateErrors[{{ $classroom->id }}]" x-cloak
+                                        class="text-red-600 text-xs mt-1"
+                                        x-text="dateErrors[{{ $classroom->id }}]"></p>
                                 </div>
                             </div>
                         @endforeach
@@ -113,7 +122,7 @@
             </p>
             <div class="flex gap-3">
                 <a href="{{ route('admin.classrooms.index') }}" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Batal</a>
-                <button type="submit" :disabled="selected.length === 0"
+                <button type="submit" :disabled="selected.length === 0 || hasDateErrors"
                     class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                     Upload ke <span x-text="selected.length"></span> Kelas
                 </button>
@@ -125,8 +134,16 @@
 @push('scripts')
 <script>
 function bulkUpload() {
+    // Map nama hari Indonesia → nomor hari JS (0=Minggu, 1=Senin, ..., 6=Sabtu)
+    const DAY_MAP = { 'Minggu': 0, 'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5, 'Sabtu': 6 };
+    const DAY_NAME = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+
     return {
         selected: @json(old('classroom_ids', [])).map(Number),
+        // classroom_id → array hari yang diizinkan (dari backend)
+        classroomDays: @json($classroomDays),
+        dateErrors: {},
+
         toggle(id) {
             if (this.selected.includes(id)) {
                 this.selected = this.selected.filter(i => i !== id);
@@ -141,6 +158,29 @@ function bulkUpload() {
         deselectAll() {
             this.selected = [];
             document.querySelectorAll('input[name="classroom_ids[]"]').forEach(cb => cb.checked = false);
+        },
+        checkDate(classroomId, dateValue) {
+            if (!dateValue) {
+                delete this.dateErrors[classroomId];
+                return;
+            }
+            const allowed = this.classroomDays[classroomId] || [];
+            if (allowed.length === 0) return; // paket tidak ada batasan hari
+
+            // Parse tanggal lokal (hindari offset UTC)
+            const [y, m, d] = dateValue.split('-').map(Number);
+            const dayNum  = new Date(y, m - 1, d).getDay(); // 0=Minggu
+            const dayName = DAY_NAME[dayNum];
+
+            const allowedNums = allowed.map(n => DAY_MAP[n]);
+            if (!allowedNums.includes(dayNum)) {
+                this.dateErrors[classroomId] = `${dayName} bukan hari jadwal paket ini (${allowed.join(', ')})`;
+            } else {
+                delete this.dateErrors[classroomId];
+            }
+        },
+        get hasDateErrors() {
+            return Object.keys(this.dateErrors).length > 0;
         }
     }
 }
